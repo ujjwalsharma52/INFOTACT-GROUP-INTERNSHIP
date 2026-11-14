@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 
 from database import get_connection
+from data_validation import validate_sensor_reading
 
 
 def generate_sensor_data():
@@ -21,6 +22,16 @@ def generate_sensor_data():
 
 
 def insert_sensor_data(data):
+
+    # Validate sensor data before database insertion
+    errors = validate_sensor_reading(data)
+
+    if errors:
+        print("Invalid sensor reading. Data rejected:")
+        for error in errors:
+            print("-", error)
+        return
+
     connection = get_connection()
 
     if connection is None:
