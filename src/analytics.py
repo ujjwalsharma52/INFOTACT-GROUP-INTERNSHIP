@@ -21,28 +21,60 @@ def analyze_sensor_data():
             status,
             reading_time
         FROM sensor_readings
+        ORDER BY reading_time DESC
         """
 
         df = pd.read_sql_query(query, connection)
 
+        if df.empty:
+            print("No sensor data available.")
+            return
+
         print("\n========== ATMOSYNC ANALYTICS ==========\n")
 
+        # Total readings
         print("Total Sensor Readings:", len(df))
 
-        print("\nAverage Temperature:")
-        print(df["temperature_c"].mean())
+        # Average sensor values
+        print("\nAverage Temperature:",
+              round(df["temperature_c"].mean(), 2), "°C")
 
-        print("\nAverage Humidity:")
-        print(df["humidity_pct"].mean())
+        print("Average Humidity:",
+              round(df["humidity_pct"].mean(), 2), "%")
 
-        print("\nAverage Vibration:")
-        print(df["vibration_g"].mean())
+        print("Average Vibration:",
+              round(df["vibration_g"].mean(), 2), "g")
 
+        # Maximum and minimum temperature
+        print("\nTemperature Analysis:")
+        print("Maximum Temperature:",
+              df["temperature_c"].max(), "°C")
+
+        print("Minimum Temperature:",
+              df["temperature_c"].min(), "°C")
+
+        # Commodity distribution
         print("\nCommodity Distribution:")
         print(df["commodity"].value_counts())
 
-        print("\nComplete Sensor Data:")
-        print(df.to_string(index=False))
+        # Container-wise analysis
+        print("\nContainer-wise Analytics:")
+        container_summary = df.groupby("container_id").agg(
+            total_readings=("container_id", "count"),
+            avg_temperature=("temperature_c", "mean"),
+            avg_humidity=("humidity_pct", "mean"),
+            avg_vibration=("vibration_g", "mean")
+        ).round(2)
+
+        print(container_summary)
+
+        # Sensor status summary
+        print("\nSensor Status Summary:")
+        print(df["status"].value_counts())
+
+        # Latest sensor readings
+        print("\nLatest 5 Sensor Readings:")
+        print(df.head(5).to_string(index=False))
 
     except Exception as error:
         print("Analytics Error:", error)
