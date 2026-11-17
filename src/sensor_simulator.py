@@ -5,19 +5,33 @@ from datetime import datetime
 
 from database import get_connection
 from data_validation import validate_sensor_reading
+from status_classification import classify_sensor_status
 
 
 def generate_sensor_data():
+
+    # Generate sensor values
+    temperature = round(random.uniform(15, 40), 2)
+    humidity = round(random.uniform(30, 90), 2)
+    vibration = round(random.uniform(0.1, 5.0), 2)
+
+    # Automatically classify sensor status
+    status = classify_sensor_status({
+        "temperature_c": temperature,
+        "humidity_pct": humidity,
+        "vibration_g": vibration
+    })
+
     return {
         "container_id": "CONTAINER_001",
         "reading_time": datetime.now(),
         "commodity": random.choice(
             ["Wheat", "Rice", "Corn", "Soybean"]
         ),
-        "temperature_c": round(random.uniform(15, 40), 2),
-        "humidity_pct": round(random.uniform(30, 90), 2),
-        "vibration_g": round(random.uniform(0.1, 5.0), 2),
-        "status": "NORMAL"
+        "temperature_c": temperature,
+        "humidity_pct": humidity,
+        "vibration_g": vibration,
+        "status": status
     }
 
 
@@ -58,7 +72,9 @@ def insert_sensor_data(data):
         ))
 
         connection.commit()
+
         print("Sensor reading inserted:", data)
+        print("Sensor Status:", data["status"])
 
         cursor.close()
 
@@ -71,6 +87,7 @@ def insert_sensor_data(data):
 
 
 if __name__ == "__main__":
+
     for i in range(5):
         sensor_data = generate_sensor_data()
         insert_sensor_data(sensor_data)
